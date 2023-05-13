@@ -1,0 +1,21 @@
+---
+
+- hosts: cent3
+  become: yes
+  tasks:
+  - name: install pgsql etc
+    yum:
+        name:
+          - postgresql
+          - postgresql-server
+          - postgresql-contrib
+          - postgresql-libs
+          - python3-psycopg2
+        state: latest
+  - name: Initialize PostgreSQL
+    ansible.builtin.shell: "postgresql-setup initdb"
+  - name: postgresql restart
+    ansible.builtin.service:
+      name: postgresql
+      state: started
+      enabled: true

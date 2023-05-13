@@ -1,0 +1,50 @@
+---
+
+- hosts: ub2
+  become: yes
+  tasks:
+  - name: Copy elk to Ubuntu
+    copy:
+      src: "{{ item }}"
+      dest: /home/griffon/
+      force: yes
+    with_fileglob:
+    - "/home/griffon/es/*"
+    when:
+       ansible_os_family == "Debian"
+  - name: install elk on ubuntu
+    apt:
+       deb: "{{ item }}"
+       state: present
+    with_items:
+      - /home/griffon/elasticsearch-7.17.8-amd64.deb
+      - /home/griffon/logstash-7.17.8-amd64.deb
+      - /home/griffon/kibana-7.17.8-amd64.deb
+    when:
+       ansible_os_family == "Debian"
+  - name: elk restart
+    ansible.builtin.service:
+      name: "{{ item }}"
+      state: restarted
+      enabled: true
+    with_items:
+    - elasticsearch
+    - logstash
+    - kibana
+  handlers:
+  - name: logstash systemd
+    systemd:
+     name: logstash.service
+     enabled: yes
+     state: started
+  - name: elasticsearch systemd
+    systemd:
+     name: elasticsearch.service
+     enabled: yes
+     state: started
+  - name: kibana systemd
+    systemd:
+     name: kibana.service
+     enabled: yes
+     state: started
+

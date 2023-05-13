@@ -1,0 +1,29 @@
+---
+
+- hosts: ub1
+  become: yes
+  tasks:
+  - name: Copy grafana to Ubuntu
+    copy:
+      src: /home/griffon/es/grafana-enterprise_9.5.1_amd64.deb
+      dest: /home/griffon/
+      force: yes
+    when:
+       ansible_os_family == "Debian"
+  - name: install grafana on ubuntu
+    apt:
+       deb: /home/griffon/grafana-enterprise_9.5.1_amd64.deb
+       state: present
+    when:
+       ansible_os_family == "Debian"
+  - name: grafana restart
+    ansible.builtin.service:
+      name: grafana-server
+      state: restarted
+      enabled: true
+  handlers:
+  - name: grafana-server systemd
+    systemd:
+     name: filebeat.service
+     enabled: yes
+     state: started

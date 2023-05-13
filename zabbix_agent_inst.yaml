@@ -1,0 +1,40 @@
+---
+
+- hosts: all
+  become: yes
+  tasks:
+  - name: Install zabbix-agent on RedHat Family
+    yum:
+      name: 'zabbix-agent'
+      state: 'latest'
+    when:
+       ansible_os_family == "RedHat"
+    notify:
+       zabbix-agent systemd
+  - name: Install zabbix-agent on Ubuntu
+    apt:
+      name: 'zabbix-agent'
+      state: 'latest'
+    when:
+       ansible_os_family == "Debian"
+    notify:
+       zabbix-agent systemd
+  - name: set zabbix agent config for centos
+    ansible.builtin.script: /etc/ansible/roles/set_zabbix_configUB.sh
+    when:
+       ansible_os_family == "RedHat"
+  - name: set zabbix agent config for ubuntu
+    ansible.builtin.script: /etc/ansible/roles/set_zabbix_configUB.sh
+    when:
+       ansible_os_family == "Debian"
+  - name: zabbix-agent restart
+    ansible.builtin.service:
+      name: zabbix-agent
+      state: restarted
+      enabled: true
+  handlers:
+  - name: zabbix-agent systemd
+    systemd:
+     name: zabbix-agent.service
+     enabled: yes
+     state: started

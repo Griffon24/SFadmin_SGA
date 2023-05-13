@@ -1,0 +1,49 @@
+---
+
+- hosts: cent3
+  become: yes
+  tasks:
+  - name: Install bind
+    yum:
+      name: "{{ item }}" 
+      update_cache: yes 
+      state: latest 
+    loop:
+      - bind
+      - bind-utils
+    when:
+       ansible_os_family == "RedHat"
+  - name: Setup repo for Mysql
+    yum:
+      name: http://repo.mysql.com/mysql57-community-release-el7.rpm
+      state: present
+  - name: Import a key for Mysql
+    ansible.builtin.rpm_key:
+      state: present
+      key: https://repo.mysql.com/RPM-GPG-KEY-mysql-2022
+  - name: Install mail
+    yum:
+      name: "{{ item }}"
+      state: 'latest'
+    loop:
+      - postfix
+      - php
+      - php-fpm
+      - dovecot
+      - dovecot-pgsql
+      - mysql-server
+      - wget
+    when:
+       ansible_os_family == "RedHat"
+  - name: postfix restart
+    ansible.builtin.service:
+      name: postfix
+      state: restarted
+      enabled: true
+  - name: dovecot restart
+    ansible.builtin.service:
+      name: dovecot
+      state: restarted
+      enabled: true
+  - name: install rouncube by script
+    ansible.builtin.script: /etc/ansible/roles/centos_rhel_install.sh

@@ -1,0 +1,42 @@
+---
+
+- hosts: all
+  become: yes
+  tasks:
+  - name: Copy filebeat to RH
+    copy:
+      src: /home/griffon/es/filebeat-7.17.8-x86_64.rpm
+      dest: /home/griffon/
+      force: yes
+    when:
+       ansible_os_family == "RedHat"
+  - name: Copy filebeat to Ubuntu
+    copy:
+      src: /home/griffon/es/filebeat-7.17.8-amd64.deb
+      dest: /home/griffon/
+      force: yes
+    when:
+       ansible_os_family == "Debian"
+  - name: install filebeat on centos
+    yum:
+       name: /home/griffon/filebeat-7.17.8-x86_64.rpm
+       state: present
+    when:
+       ansible_os_family == "RedHat"
+  - name: install filebeat on ubuntu
+    apt:
+       deb: /home/griffon/filebeat-7.17.8-amd64.deb
+       state: present
+    when:
+       ansible_os_family == "Debian"
+  - name: filebeat restart
+    ansible.builtin.service:
+      name: filebeat
+      state: restarted
+      enabled: true
+  handlers:
+  - name: filebeat systemd
+    systemd:
+     name: filebeat.service
+     enabled: yes
+     state: started

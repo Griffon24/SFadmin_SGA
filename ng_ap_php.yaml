@@ -1,0 +1,57 @@
+---
+
+- hosts: all
+  become: yes
+  tasks:
+  - name: Install php7.4
+    apt:
+      name: 'php7.4*' 
+      update_cache: yes 
+      state: latest 
+      force_apt_get: yes
+    when:
+       ansible_os_family == "Debian"
+  - name: Install nginx
+    apt:
+      name: 'nginx'
+      state: 'latest'
+    when:
+       ansible_os_family == "Debian"
+  - name: apache on Ubuntu
+    apt:
+      name: 'apache2'
+      state: 'latest'
+    when:
+       ansible_os_family == "Debian"
+  - name: copy apache2 config
+    template:
+      src: "/etc/ansible/roles/apache2.conf"
+      dest: "/etc/apache2/apache2.conf"
+  - name: set apache2 port to 8080
+    ansible.builtin.script: /etc/ansible/roles/apache2_port.sh
+  - name: nginx restart
+    ansible.builtin.service:
+      name: nginx
+      state: restarted
+      enabled: true
+  - name: apache2 restart
+    ansible.builtin.service:
+      name: apache2
+      state: restarted
+      enabled: true
+  handlers:
+  - name: php systemd
+    systemd:
+     name: php.service
+     enabled: yes
+     state: started
+  - name: nginx systemd
+    systemd:
+     name: nginx.service
+     enabled: yes
+     state: started
+  - name: apache2 systemd
+    systemd:
+     name: apache2.service
+     enabled: yes
+     state: started
